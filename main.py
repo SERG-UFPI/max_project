@@ -85,7 +85,10 @@ def getColumnsTable(cursor, table):
                 "type": row[7]
             })
         else:
-            tables[table] = []
+            tables[table] = [{
+                "name": row[3],
+                "type": row[7]
+            }]
 
     return tables
 
@@ -121,5 +124,5 @@ if __name__ == '__main__':
     print("DATA FETCHED!")
     # c = conn.cursor()
     tables = getColumnsTable(conn.cursor(), None)
-    # jsonToSql(conn, tables)
+    jsonToSql(conn, tables)
     conn.close()

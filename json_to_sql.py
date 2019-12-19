@@ -88,14 +88,19 @@ def insertRepositorysCommand(keys, values, json_file):
     return sql
 
 
-def _createTable(tables, attributes, list_files, connection, cursor):
+def _createTable(tables, keys, attributes, list_files, connection, cursor):
     if list_files in tables:
         new_json = {}
+        columns = [atrib["name"] for atrib in tables[list_files]]
         for key in attributes:
-            if not (key in tables[list_files]):
+            name_column = key.lower()
+            if name_column == "user":
+                name_column = "user_info"
+            if not (name_column in columns):
                 new_json[key] = attributes[key]
-        if len(new_json > 0):
+        if len(new_json) > 0:
             keys = [key for key in new_json]
+            print(keys)
             alterTableScript(keys, cursor, new_json, list_files)
             connection.commit()
     else:
@@ -106,11 +111,11 @@ def _createTable(tables, attributes, list_files, connection, cursor):
 def _insert(new_values, keys, values, attributes, cursor, connection, table):
     if table == "commits":
         sql = insertCommitsCommand(keys, values, attributes)
-    elif list_files == "issues":
+    elif table == "issues":
         sql = insertIssuesCommand(keys, values, attributes)
-    elif list_files == "pullrequests":
+    elif table == "pullrequests":
         sql = insertPRsCommand(keys, values, attributes)
-    elif list_files == "repositorys":
+    elif table == "repositorys":
         sql = insertRepositorysCommand(keys, values, attributes)
 
     cursor.execute(sql, new_values)
@@ -160,7 +165,7 @@ def jsonToSql(connection, tables):
         keys = [key for key in attributes]
         # print(keys)
 
-        _createTable(tables, attributes, list_files, connection, cursor)
+        _createTable(tables, keys, attributes, list_files, connection, cursor)
 
     for list_files in files:
         for file in files[list_files]:
