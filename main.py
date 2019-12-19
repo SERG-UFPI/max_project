@@ -64,11 +64,37 @@ def fixJson(user_owner, repo_name):
         file.close()
 
 
+def getColumnsTable(cursor, table):
+    # cursor.execut(f"""
+    #     SELECT * FROM {table} LIMIT 0;
+    # """)
+
+    cursor.execute("""select *
+               from information_schema.columns
+               where table_schema NOT IN ('information_schema', 'pg_catalog')
+               order by table_schema, table_name""")
+    tables = {}
+    for row in cursor:
+        table = row[2]
+        column = row[3]
+        type_column = row[7]
+
+        if table in tables:
+            tables[table].append({
+                "name": row[3],
+                "type": row[7]
+            })
+        else:
+            tables[table] = []
+
+    return tables
+
+
 if __name__ == '__main__':
 
     # SENHA DO POSTGRES INSTALADO NO PC É NECESSÁRIA
     conn = psycopg2.connect(
-        host="localhost", database="serg", user="postgres", password="")
+        host="localhost", database="serg", user="postgres", password="maxlima13")
     user_owner = "ES2-UFPI"
     repo_name = "Unichat"
     # user_owner = "Mex978"
@@ -80,7 +106,7 @@ if __name__ == '__main__':
     #              os.path.exists(f"./{user_owner}_{repo_name}_pullrequests.json") and
     #              os.path.exists(f"./{user_owner}_{repo_name}_repository.json"))
 
-    token = None  # TOKEN DO GITHUB AQUI
+    token = "9da46c40b0335b8c5d08fa7304b84f3950c9ff45"  # TOKEN DO GITHUB AQUI
 
     if not os.path.exists(f"./{user_owner}_{repo_name}_commits.json"):
         getCommits(user_owner, repo_name)
@@ -94,5 +120,6 @@ if __name__ == '__main__':
     fixJson(user_owner, repo_name)
     print("DATA FETCHED!")
     # c = conn.cursor()
-    jsonToSql(conn)
+    tables = getColumnsTable(conn.cursor(), None)
+    # jsonToSql(conn, tables)
     conn.close()

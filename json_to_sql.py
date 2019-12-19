@@ -2,6 +2,7 @@ import json
 import os
 import psycopg2
 from create_script import createTableScript
+from alter_script import alterTableScript
 
 
 def insertCommitsCommand(keys, values, json_file):
@@ -87,7 +88,36 @@ def insertRepositorysCommand(keys, values, json_file):
     return sql
 
 
-def jsonToSql(connection):
+def _createTable(tables, attributes, list_files, connection, cursor):
+    if list_files in tables:
+        new_json = {}
+        for key in attributes:
+            if not (key in tables[list_files]):
+                new_json[key] = attributes[key]
+        if len(new_json > 0):
+            keys = [key for key in new_json]
+            alterTableScript(keys, cursor, new_json, list_files)
+            connection.commit()
+    else:
+        createTableScript(keys, cursor, attributes, list_files)
+        connection.commit()
+
+
+def _insert(new_values, keys, values, attributes, cursor, connection, table):
+    if table == "commits":
+        sql = insertCommitsCommand(keys, values, attributes)
+    elif list_files == "issues":
+        sql = insertIssuesCommand(keys, values, attributes)
+    elif list_files == "pullrequests":
+        sql = insertPRsCommand(keys, values, attributes)
+    elif list_files == "repositorys":
+        sql = insertRepositorysCommand(keys, values, attributes)
+
+    cursor.execute(sql, new_values)
+    connection.commit()
+
+
+def jsonToSql(connection, tables):
     json_commits_files = []
     json_issues_files = []
     json_pullrequests_files = []
@@ -130,18 +160,7 @@ def jsonToSql(connection):
         keys = [key for key in attributes]
         # print(keys)
 
-        if list_files == "commits":
-            createTableScript(keys, cursor, attributes, list_files)
-            connection.commit()
-        elif list_files == "issues":
-            createTableScript(keys, cursor, attributes, list_files)
-            connection.commit()
-        elif list_files == "pullrequests":
-            createTableScript(keys, cursor, attributes, list_files)
-            connection.commit()
-        elif list_files == "repositorys":
-            createTableScript(keys, cursor, attributes, list_files)
-            connection.commit()
+        _createTable(tables, attributes, list_files, connection, cursor)
 
     for list_files in files:
         for file in files[list_files]:
@@ -165,20 +184,5 @@ def jsonToSql(connection):
                     new_values = [json.dumps(v, ensure_ascii=False) if (
                         type(v) is dict or type(v) is list) else v for v in values]
 
-                    if list_files == "commits":
-                        sql = insertCommitsCommand(keys, values, attributes)
-                        cursor.execute(sql, new_values)
-                        connection.commit()
-                    elif list_files == "issues":
-                        sql = insertIssuesCommand(keys, values, attributes)
-                        cursor.execute(sql, new_values)
-                        connection.commit()
-                    elif list_files == "pullrequests":
-                        sql = insertPRsCommand(keys, values, attributes)
-                        cursor.execute(sql, new_values)
-                        connection.commit()
-                    elif list_files == "repositorys":
-                        sql = insertRepositorysCommand(
-                            keys, values, attributes)
-                        cursor.execute(sql, new_values)
-                        connection.commit()
+                    _insert(new_values, keys, values, attributes,
+                            cursor, connection, list_files)
