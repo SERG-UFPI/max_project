@@ -1,8 +1,8 @@
 import json
 import os
 import psycopg2
-from create_script import createTableScript
-from alter_script import alterTableScript
+from lib.create_script import createTableScript
+from lib.alter_script import alterTableScript
 
 
 def insertCommitsCommand(keys, values, json_file):

@@ -2,10 +2,10 @@
 @Author: Max Nícolas de Oliveira Lima
 
 '''
-import os
-import json
 import psycopg2
-from json_to_sql import jsonToSql
+import json
+import os
+from lib.json_to_sql import jsonToSql
 
 
 def getCommits(user_owner, repo_name):
