@@ -88,10 +88,11 @@ def insertRepositorysCommand(keys, values, json_file):
     return sql
 
 
-def _createTable(tables, keys, attributes, list_files, connection, cursor):
-    if list_files in tables:
+def _createTable(tables, keys, attributes, category, connection, cursor):
+    table = 'repositorys' if category == 'repository' else category
+    if table in tables:
         new_json = {}
-        columns = [atrib["name"] for atrib in tables[list_files]]
+        columns = [atrib["name"] for atrib in tables[table]]
         for key in attributes:
             name_column = key.lower()
             if name_column == "user":
@@ -100,15 +101,15 @@ def _createTable(tables, keys, attributes, list_files, connection, cursor):
                 new_json[key] = attributes[key]
         if len(new_json) > 0:
             keys = [key for key in new_json]
-            print(keys)
-            alterTableScript(keys, cursor, new_json, list_files)
+            alterTableScript(keys, cursor, new_json, table)
             connection.commit()
     else:
-        createTableScript(keys, cursor, attributes, list_files)
+        createTableScript(keys, cursor, attributes, table)
         connection.commit()
 
 
-def _insert(new_values, keys, values, attributes, cursor, connection, table):
+def _insert(new_values, keys, values, attributes, cursor, connection, category):
+    table = 'repositorys' if category == 'repository' else category
     if table == "commits":
         sql = insertCommitsCommand(keys, values, attributes)
     elif table == "issues":
@@ -122,72 +123,40 @@ def _insert(new_values, keys, values, attributes, cursor, connection, table):
     connection.commit()
 
 
-def jsonToSql(connection, tables):
-    json_commits_files = []
-    json_issues_files = []
-    json_pullrequests_files = []
-    json_repository_files = []
-    files = {
-        "commits": json_commits_files,
-        "issues": json_issues_files,
-        "pullrequests": json_pullrequests_files,
-        "repositorys": json_repository_files
-    }
-    for file in os.listdir():
-        if file.find('commits.json') != -1:
-            json_commits_files.append("./" + file)
-        elif file.find('issues.json') != -1:
-            json_issues_files.append("./" + file)
-        elif file.find('pullrequests.json') != -1:
-            json_pullrequests_files.append("./" + file)
-        elif file.find('repository.json') != -1:
-            json_repository_files.append("./" + file)
-    # print(files)
+def jsonToSql(connection, tables, repository):
+    print("PARSING TO SQL...")
     cursor = connection.cursor()
-    for list_files in files:
-        attributes = {}
-        for file in files[list_files]:
-            if os.stat(file).st_size == 0:
-                continue
-            with open(file) as json_file:
-                # print(json_file)
-                json_dict = json.load(json_file)
-                # attributes = json_dict[0]['data']
-                for i in range(len(json_dict)):
-                    for key, value in json_dict[i]['data'].items():
-                        if not (key in attributes):
-                            if not (value is None):
-                                attributes[key] = value
 
-                        # if len(json_dict[i]['data']) >= len(attributes) and not (None in json_dict[i]['data'].values()):
-                        #     attributes = json_dict[i]['data']
+    # Criação da tabela
+    for category in repository:
+        attributes = {}
+        for item in repository[category]:
+            for key, value in item['data'].items():
+                if not (value is None):
+                    attributes[key] = value
 
         keys = [key for key in attributes]
-        # print(keys)
+        print(f"CREATING TABLE {category}")
+        _createTable(tables, keys, attributes, category, connection, cursor)
 
-        _createTable(tables, keys, attributes, list_files, connection, cursor)
+    # Inserção de items do db
+    for category in repository:
+        for item in repository[category]:
+            attributes = item['data']
+            keys = []
+            for key in attributes:
+                if attributes[key] is not None:
+                    keys.append(key)
 
-    for list_files in files:
-        for file in files[list_files]:
-            if os.stat(file).st_size == 0:
-                continue
-            with open(file) as json_file:
-                json_dict = json.load(json_file)
+            values = []
+            for key in attributes:
+                if attributes[key] is not None:
+                    values.append(attributes[key])
 
-                for i in range(len(json_dict)):
-                    attributes = json_dict[i]['data']
-                    keys = []
-                    for key in attributes:
-                        if attributes[key] is not None:
-                            keys.append(key)
+            # print(keys, values)
 
-                    values = []
-                    for key in attributes:
-                        if attributes[key] is not None:
-                            values.append(attributes[key])
-
-                    new_values = [json.dumps(v, ensure_ascii=False) if (
-                        type(v) is dict or type(v) is list) else v for v in values]
-
-                    _insert(new_values, keys, values, attributes,
-                            cursor, connection, list_files)
+            new_values = [json.dumps(v, ensure_ascii=False) if (
+                type(v) is dict or type(v) is list) else v for v in values]
+            print(f"INSERTING DATA IN DB {category}")
+            _insert(new_values, keys, values, attributes,
+                    cursor, connection, category)

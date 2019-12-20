@@ -4,6 +4,8 @@ def alterTableScript(keys, cursor, json_file, table):
     for key in keys:
         t = type(json_file[key])
         atribute_name = key.lower().replace("-", "_")
+        if atribute_name == "user":
+            atribute_name = "user_info"
         sql += "ADD COLUMN"
         if keys[-1] == key:
             if t is bool:
