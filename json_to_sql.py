@@ -8,7 +8,7 @@ from alter_script import alterTableScript
 def insertCommitsCommand(keys, values, json_file):
     sql = "INSERT INTO commits ("
     for i in range(len(keys)):
-        atribute_name = keys[i].lower()
+        atribute_name = keys[i].lower().replace("-", "_")
         if keys[i] == "Commit":
             atribute_name = "commiter"
         elif atribute_name == "user":
@@ -31,7 +31,7 @@ def insertCommitsCommand(keys, values, json_file):
 def insertIssuesCommand(keys, values, json_file):
     sql = "INSERT INTO issues ("
     for i in range(len(keys)):
-        atribute_name = keys[i].lower()
+        atribute_name = keys[i].lower().replace("-", "_")
         if atribute_name == "user":
             atribute_name = "user_info"
         if i == len(keys) - 1:
@@ -51,7 +51,7 @@ def insertIssuesCommand(keys, values, json_file):
 def insertPRsCommand(keys, values, json_file):
     sql = "INSERT INTO pullrequests ("
     for i in range(len(keys)):
-        atribute_name = keys[i].lower()
+        atribute_name = keys[i].lower().replace("-", "_")
         if atribute_name == "user":
             atribute_name = "user_info"
         if i == len(keys) - 1:
@@ -71,7 +71,7 @@ def insertPRsCommand(keys, values, json_file):
 def insertRepositorysCommand(keys, values, json_file):
     sql = "INSERT INTO repositorys ("
     for i in range(len(keys)):
-        atribute_name = keys[i].lower()
+        atribute_name = keys[i].lower().replace("-", "_")
         if atribute_name == "user":
             atribute_name = "user_info"
         if i == len(keys) - 1:

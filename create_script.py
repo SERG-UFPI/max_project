@@ -74,7 +74,7 @@ def createTableScript(keys, cursor, json_file, table):
     for key in keys:
         t = type(json_file[key])
         # print(t)
-        atribute_name = key.lower()
+        atribute_name = key.lower().replace("-", "_")
         if key == "Commit":
             atribute_name = "commiter"
         if atribute_name == "user":

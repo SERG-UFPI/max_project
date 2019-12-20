@@ -3,7 +3,7 @@ def alterTableScript(keys, cursor, json_file, table):
     sql += f"ALTER TABLE IF EXISTS {table}\n"
     for key in keys:
         t = type(json_file[key])
-        atribute_name = key.lower()
+        atribute_name = key.lower().replace("-", "_")
         sql += "ADD COLUMN"
         if keys[-1] == key:
             if t is bool:

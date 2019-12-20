@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     # SENHA DO POSTGRES INSTALADO NO PC É NECESSÁRIA
     conn = psycopg2.connect(
-        host="localhost", database="serg", user="postgres", password="maxlima13")
+        host="localhost", database="serg", user="postgres", password="")
     user_owner = "ES2-UFPI"
     repo_name = "Unichat"
     # user_owner = "Mex978"
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     #              os.path.exists(f"./{user_owner}_{repo_name}_pullrequests.json") and
     #              os.path.exists(f"./{user_owner}_{repo_name}_repository.json"))
 
-    token = "9da46c40b0335b8c5d08fa7304b84f3950c9ff45"  # TOKEN DO GITHUB AQUI
+    token = ""  # TOKEN DO GITHUB AQUI
 
     if not os.path.exists(f"./{user_owner}_{repo_name}_commits.json"):
         getCommits(user_owner, repo_name)
