@@ -115,15 +115,18 @@ if __name__ == '__main__':
         issues = {}
         pullrequests = {}
 
-        commits = getCommits(user_owner, repo_name)
-        issues = getIssues(user_owner, repo_name, tokens)
-        pullrequests = getPRs(user_owner, repo_name, tokens)
+        repository_info = list(generateRepository(user_owner, repo_name))
+        commits = list(getCommits(user_owner, repo_name))
+        issues = list(getIssues(user_owner, repo_name, tokens))
+        print("ISSUES RETRIEVED")
+        pullrequests = list(getPRs(user_owner, repo_name, tokens))
+        print("PULL_REQUESTS RETRIEVED")
 
         repository = {
-            "repository": list(generateRepository(user_owner, repo_name)),
-            "commits": list(commits),
-            "issues": list(issues),
-            "pullrequests": list(pullrequests)
+            "repository": repository_info,
+            "commits": commits,
+            "issues": issues,
+            "pullrequests": pullrequests
         }
 
         print("DATA FETCHED!")

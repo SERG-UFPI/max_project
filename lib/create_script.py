@@ -10,14 +10,15 @@ def createTableScript(keys, cursor, json_file, table):
         if atribute_name == "user":
             atribute_name = "user_info"
         if t is bool:
-            sql += f",\n {atribute_name} BOOLEAN\n"
+            sql += f",\n {atribute_name} BOOLEAN"
         elif t is str:
-            sql += f",\n {atribute_name} TEXT\n"
+            sql += f",\n {atribute_name} TEXT"
         elif t is list or t is dict:
-            sql += f",\n {atribute_name} JSON\n"
+            sql += f",\n {atribute_name} JSON"
         elif t is int:
-            sql += f",\n {atribute_name} INTEGER\n"
+            sql += f",\n {atribute_name} INTEGER"
         elif t is float:
-            sql += f",\n {atribute_name} DECIMAL\n"
-    sql += ");"
+            sql += f",\n {atribute_name} DECIMAL"
+    sql += ",\n  PRIMARY KEY (key, id)"
+    sql += "\n);"
     cursor.execute(sql)
