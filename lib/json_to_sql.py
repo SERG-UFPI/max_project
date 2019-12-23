@@ -1,7 +1,7 @@
 import json
 import os
 import psycopg2
-from lib.create_script import createTableScript
+from lib.create_script import createTableScript, createRelationshipScript
 from lib.alter_script import alterTableScript
 
 
@@ -88,6 +88,36 @@ def insertRepositorysCommand(keys, values, json_file):
     return sql
 
 
+def insertRepositorysRelationshipCommand():
+    sql = f"""
+        INSERT INTO 
+            repository_commits_issues_pullrequests (owner, repository)
+        VALUES
+            (%s, %s);
+    """
+    return sql
+
+
+def updateRepositorysRelationshipCommand(cursor, value, table_referenced, repository_dict):
+    if table_referenced == "issues":
+        atributte_to_update = "id_issue"
+    elif table_referenced == "pullrequests":
+        atributte_to_update = "id_pull_request"
+    elif table_referenced == "commits":
+        atributte_to_update = "commit"
+    sql = f"""
+    UPDATE repository_commits_issues_pullrequests set {atributte_to_update} = %s
+    WHERE """
+
+    for key in repository_dict:
+        if key == list(repository_dict.keys())[-1]:
+            sql += f"{key} = {repository_dict[key]});"
+        else:
+            sql += f"{key} = {repository_dict[key]} AND "
+
+    cursor.execute(sql, value)
+
+
 def _createTable(tables, keys, attributes, category, connection, cursor):
     table = 'repositorys' if category == 'repository' else category
     if table in tables:
@@ -106,6 +136,11 @@ def _createTable(tables, keys, attributes, category, connection, cursor):
     else:
         createTableScript(keys, cursor, attributes, table)
         connection.commit()
+
+
+def _createRelationshipTable(connection, cursor, keys):
+    createRelationshipScript(cursor, keys)
+    connection.commit()
 
 
 def _insert(new_values, keys, values, attributes, cursor, connection, category):
@@ -139,8 +174,18 @@ def jsonToSql(connection, tables, repository):
         print(f"CREATING TABLE {category}")
         _createTable(tables, keys, attributes, category, connection, cursor)
 
+    for item in repository["repository"]:
+        attributes = {}
+        for key, value in item['data'].items():
+            if not (value is None):
+                attributes[key] = value
+
+        keys = [key for key in attributes]
+        _createRelationshipTable(connection, cursor, keys)
+
     # Inserção de items do db
     for category in repository:
+        attributes = {}
         for item in repository[category]:
             attributes = item['data']
             keys = []
@@ -153,10 +198,23 @@ def jsonToSql(connection, tables, repository):
                 if attributes[key] is not None:
                     values.append(attributes[key])
 
-            # print(keys, values)
-
             new_values = [json.dumps(v, ensure_ascii=False) if (
                 type(v) is dict or type(v) is list) else v for v in values]
             print(f"INSERTING DATA IN DB {category}")
             _insert(new_values, keys, values, attributes,
                     cursor, connection, category)
+            if category == "repository":
+                sql = insertRepositorysRelationshipCommand()
+                cursor.execute(
+                    sql, (attributes["owner"], attributes["repository"]))
+                connection.commit()
+            else:
+                if category == "commits":
+                    updateRepositorysRelationshipCommand(
+                        cursor, attributes["commit"], category, repository["repository"][0]["data"])
+                else:
+                    print("====================================================")
+                    print(attributes)
+                    print("====================================================")
+                    updateRepositorysRelationshipCommand(
+                        cursor, attributes["id"], category, repository["repository"][0]["data"])
