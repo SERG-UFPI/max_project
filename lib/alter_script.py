@@ -29,5 +29,5 @@ def alterTableScript(keys, cursor, json_file, table):
                 sql += f" {atribute_name} INTEGER,\n"
             elif t is float:
                 sql += f" {atribute_name} DECIMAL,\n"
-    # print(sql)
+
     cursor.execute(sql)

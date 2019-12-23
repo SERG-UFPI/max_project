@@ -1,7 +1,7 @@
 import json
 import os
 import psycopg2
-from lib.create_script import createTableScript, createRelationshipScript
+from lib.create_script import createTableScript, createRelationshipCommitsRepositorysScript, createRelationshipIssuesRepositorysScript, createRelationshipPullRequestsRepositorysScript
 from lib.alter_script import alterTableScript
 
 
@@ -88,34 +88,33 @@ def insertRepositorysCommand(keys, values, json_file):
     return sql
 
 
-def insertRepositorysRelationshipCommand():
-    sql = f"""
-        INSERT INTO 
-            repository_commits_issues_pullrequests (owner, repository)
-        VALUES
-            (%s, %s);
-    """
-    return sql
+# def insertRepositorysRelationshipCommand():
+#     sql = f"""
+#         INSERT INTO
+#             repository_commits_issues_pullrequests (owner, repository, commit, id_issue, id_pull_request,)
+#         VALUES
+#             (%s, %s);
+#     """
+#     return sql
 
 
-def updateRepositorysRelationshipCommand(cursor, value, table_referenced, repository_dict):
+def insertRepositorysRelationshipCommand(cursor, values, table_referenced):
+    relationship_table = ""
+    atributte = ""
     if table_referenced == "issues":
-        atributte_to_update = "id_issue"
+        relationship_table = "repository_issues"
+        atributte = "id_issue"
     elif table_referenced == "pullrequests":
-        atributte_to_update = "id_pull_request"
+        relationship_table = "repository_pullrequests"
+        atributte = "id_pull_request"
     elif table_referenced == "commits":
-        atributte_to_update = "commit"
+        relationship_table = "repository_commits"
+        atributte = "commit"
     sql = f"""
-    UPDATE repository_commits_issues_pullrequests set {atributte_to_update} = %s
-    WHERE """
+    INSERT INTO {relationship_table} (owner, repository, {atributte})
+    VALUES (%s, %s, %s);"""
 
-    for key in repository_dict:
-        if key == list(repository_dict.keys())[-1]:
-            sql += f"{key} = {repository_dict[key]});"
-        else:
-            sql += f"{key} = {repository_dict[key]} AND "
-
-    cursor.execute(sql, value)
+    cursor.execute(sql, values)
 
 
 def _createTable(tables, keys, attributes, category, connection, cursor):
@@ -139,7 +138,9 @@ def _createTable(tables, keys, attributes, category, connection, cursor):
 
 
 def _createRelationshipTable(connection, cursor, keys):
-    createRelationshipScript(cursor, keys)
+    createRelationshipCommitsRepositorysScript(cursor, keys)
+    createRelationshipIssuesRepositorysScript(cursor, keys)
+    createRelationshipPullRequestsRepositorysScript(cursor, keys)
     connection.commit()
 
 
@@ -162,6 +163,9 @@ def jsonToSql(connection, tables, repository):
     print("PARSING TO SQL...")
     cursor = connection.cursor()
 
+    owner_name = repository["repository"][0]["data"]["owner"]
+    repository_name = repository["repository"][0]["data"]["repository"]
+
     # Criação da tabela
     for category in repository:
         attributes = {}
@@ -171,8 +175,13 @@ def jsonToSql(connection, tables, repository):
                     attributes[key] = value
 
         keys = [key for key in attributes]
-        print(f"CREATING TABLE {category}")
-        _createTable(tables, keys, attributes, category, connection, cursor)
+
+        try:
+            _createTable(tables, keys, attributes,
+                         category, connection, cursor)
+            print(f"CREATED TABLE {category}")
+        except Exception as e:
+            print(f" # Erro na criação da tabela: {e}")
 
     for item in repository["repository"]:
         attributes = {}
@@ -181,7 +190,12 @@ def jsonToSql(connection, tables, repository):
                 attributes[key] = value
 
         keys = [key for key in attributes]
-        _createRelationshipTable(connection, cursor, keys)
+
+        try:
+            _createRelationshipTable(connection, cursor, keys)
+            print(f"CREATED RELATIONSHIP TABLES")
+        except Exception as e:
+            print(f" # Erro na criação de tabelas de relacionamento: {e}")
 
     # Inserção de items do db
     for category in repository:
@@ -200,21 +214,18 @@ def jsonToSql(connection, tables, repository):
 
             new_values = [json.dumps(v, ensure_ascii=False) if (
                 type(v) is dict or type(v) is list) else v for v in values]
-            print(f"INSERTING DATA IN DB {category}")
-            _insert(new_values, keys, values, attributes,
-                    cursor, connection, category)
-            if category == "repository":
-                sql = insertRepositorysRelationshipCommand()
-                cursor.execute(
-                    sql, (attributes["owner"], attributes["repository"]))
-                connection.commit()
-            else:
-                if category == "commits":
-                    updateRepositorysRelationshipCommand(
-                        cursor, attributes["commit"], category, repository["repository"][0]["data"])
-                else:
-                    print("====================================================")
-                    print(attributes)
-                    print("====================================================")
-                    updateRepositorysRelationshipCommand(
-                        cursor, attributes["id"], category, repository["repository"][0]["data"])
+
+            try:
+                _insert(new_values, keys, values, attributes,
+                        cursor, connection, category)
+                if category != "repository":
+                    if category == "commits":
+                        insertRepositorysRelationshipCommand(
+                            cursor, (owner_name, repository_name, attributes["commit"]), category)
+                    else:
+                        insertRepositorysRelationshipCommand(
+                            cursor, (owner_name, repository_name, attributes["id"]), category)
+
+                print(f"INSERTED DATA IN DB {category}")
+            except Exception as e:
+                print(f" # Erro na inserção de dados: {e}")

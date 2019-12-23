@@ -94,7 +94,7 @@ def generateRepository(user_owner, repo_name):
 if __name__ == '__main__':
     # SENHA DO POSTGRES INSTALADO NO PC É NECESSÁRIA
     conn = psycopg2.connect(
-        host="localhost", database="serg", user="postgres", password="maxlima13")
+        host="localhost", database="serg", user="postgres", password="")
     user_owner = "ES2-UFPI"
     repo_name = "Unichat"
     # user_owner = "Mex978"
@@ -103,10 +103,7 @@ if __name__ == '__main__':
     cursor = conn.cursor()
 
     tokens = [
-        "8b2b8e7bc221c6088274c2a30ef35099b1b4e4a5",
-        "c1a1231d1f38c478e10dbd06c9d2ac7a05b31817",
-        "7933da8e6eafda3d15be7b897f0da0e100a10eae",
-        "a2f683c5975ec60f1e59256ed8d59a928427176f",
+
     ]  # TOKENS DO GITHUB AQUI
 
     repositorys = checkRepoExists(user_owner, repo_name, cursor)

@@ -35,12 +35,64 @@ def createTableScript(keys, cursor, json_file, table):
     cursor.execute(sql)
 
 
-def createRelationshipScript(cursor, repository_keys):
+def createRelationshipCommitsRepositorysScript(cursor, repository_keys):
     sql = """
-    CREATE TABLE IF NOT EXISTS repository_commits_issues_pullrequests (
+    CREATE TABLE IF NOT EXISTS repository_commits (
         key SERIAL,
-        commit TEXT,
-        id_issue INTEGER,
+        commit TEXT"""
+
+    for key in repository_keys:
+        sql += f",\n\t{key} TEXT"
+
+    sql += ","
+
+    sql += """
+        FOREIGN KEY (commit) REFERENCES commits (commit)"""
+
+    sql += f",\n\tFOREIGN KEY (owner, repository) REFERENCES repositorys (owner, repository)"
+
+    sql += """,
+        PRIMARY KEY (commit"""
+
+    for key in repository_keys:
+        sql += f", {key}"
+
+    sql += ")\n);"
+
+    cursor.execute(sql)
+
+
+def createRelationshipIssuesRepositorysScript(cursor, repository_keys):
+    sql = """
+    CREATE TABLE IF NOT EXISTS repository_issues (
+        key SERIAL,
+        id_issue INTEGER"""
+
+    for key in repository_keys:
+        sql += f",\n\t{key} TEXT"
+
+    sql += ","
+
+    sql += """
+        FOREIGN KEY (id_issue) REFERENCES issues (id)"""
+
+    sql += f",\n\tFOREIGN KEY (owner, repository) REFERENCES repositorys (owner, repository)"
+
+    sql += """,
+        PRIMARY KEY (id_issue"""
+
+    for key in repository_keys:
+        sql += f", {key}"
+
+    sql += ")\n);"
+
+    cursor.execute(sql)
+
+
+def createRelationshipPullRequestsRepositorysScript(cursor, repository_keys):
+    sql = """
+    CREATE TABLE IF NOT EXISTS repository_pullrequests (
+        key SERIAL,
         id_pull_request INTEGER"""
 
     for key in repository_keys:
@@ -49,20 +101,16 @@ def createRelationshipScript(cursor, repository_keys):
     sql += ","
 
     sql += """
-        FOREIGN KEY (commit) REFERENCES commits (commit),
-        FOREIGN KEY (id_issue) REFERENCES issues (id),
         FOREIGN KEY (id_pull_request) REFERENCES pullrequests (id)"""
 
     sql += f",\n\tFOREIGN KEY (owner, repository) REFERENCES repositorys (owner, repository)"
 
     sql += """,
-        PRIMARY KEY (commit, id_issue, id_pull_request"""
+        PRIMARY KEY (id_pull_request"""
 
     for key in repository_keys:
         sql += f", {key}"
 
     sql += ")\n);"
-
-    print(sql)
 
     cursor.execute(sql)
