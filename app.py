@@ -16,7 +16,6 @@ def index():
 def insert_repository():
     if request.method == "POST":
         try:
-
             if not "owner" in request.json:
                 return jsonify({
                     "error": "É necessário que seja informado no body o dono do repositório a ser inserido!"
@@ -32,7 +31,7 @@ def insert_repository():
 
             owner = request.json["owner"]
             repository = request.json["repository"]
-            tokens = request.body["tokens"]
+            tokens = request.json["tokens"]
             run(owner, repository, tokens)
             return jsonify({
                 "success": True
