@@ -24,7 +24,7 @@ def insert_repository():
                 return jsonify({
                     "error": "É necessário que seja informado no body o nome do repositório a ser inserido!"
                 })
-            if not "tokens" in request.body:
+            if not "tokens" in request.json:
                 return jsonify({
                     "error": "É necessário que seja informada no body uma lista de tokens para correta execução da ferramenta!"
                 })
