@@ -16,17 +16,18 @@ def index():
 def insert_repository():
     if request.method == "POST":
         try:
+
             if not "owner" in request.json:
                 return jsonify({
-                    "error": "É necessário que seja informado o dono do repositório a ser inserido!"
+                    "error": "É necessário que seja informado no body o dono do repositório a ser inserido!"
                 })
             if not "repository" in request.json:
                 return jsonify({
-                    "error": "É necessário que seja informado o nome do repositório a ser inserido!"
+                    "error": "É necessário que seja informado no body o nome do repositório a ser inserido!"
                 })
-            if not "tokens" in request.json:
+            if not "tokens" in request.headers:
                 return jsonify({
-                    "error": "É necessário que seja informada uma lista de tokens para correta execução da ferramenta!"
+                    "error": "É necessário que seja informada nos headers uma lista de tokens para correta execução da ferramenta!"
                 })
 
             owner = request.json["owner"]
@@ -44,4 +45,3 @@ def insert_repository():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', threaded=True, port=5000)
-    
