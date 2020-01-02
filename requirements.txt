@@ -1,4 +1,3 @@
 psycopg2
 perceval
-djangorestframework
 Flask==1.1.1
