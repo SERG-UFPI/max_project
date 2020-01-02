@@ -91,22 +91,28 @@ def generateRepository(user_owner, repo_name):
     }}
 
 
-if __name__ == '__main__':
+def createDataBase(new_db, username, password):
+    con = psycopg2.connect(dbname='postgres',
+                           user=username, host='',
+                           password=password)
+
+    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)  # <-- ADD THIS LINE
+
+    cur = con.cursor()
+
+    # Use the psycopg2.sql module instead of string concatenation
+    # in order to avoid sql injection attacs.
+    cur.execute(f"CREATE DATABASE {new_db}")
+
+
+def run(owner, repository, tokens=[]):
     # SENHA DO POSTGRES INSTALADO NO PC É NECESSÁRIA
     conn = psycopg2.connect(
         host="localhost", database="serg", user="postgres", password="")
-    user_owner = "ES2-UFPI"
-    repo_name = "Unichat"
-    # user_owner = "Mex978"
-    # repo_name = "compilador"
 
     cursor = conn.cursor()
 
-    tokens = [
-
-    ]  # TOKENS DO GITHUB AQUI
-
-    repositorys = checkRepoExists(user_owner, repo_name, cursor)
+    repositorys = checkRepoExists(owner, repository, cursor)
 
     if repositorys is None:
         print("GETING DATA...")
@@ -115,17 +121,17 @@ if __name__ == '__main__':
         issues = {}
         pullrequests = {}
 
-        repository_info = list(generateRepository(user_owner, repo_name))
+        repository_info = list(generateRepository(owner, repository))
         print("RETRIEVING COMMITS...")
-        commits = list(getCommits(user_owner, repo_name))
+        commits = list(getCommits(owner, repository))
         print("COMMITS RETRIEVED")
 
         print("RETRIEVING ISSUES...")
-        issues = list(getIssues(user_owner, repo_name, tokens))
+        issues = list(getIssues(owner, repository, tokens))
         print("ISSUES RETRIEVED")
 
         print("RETRIEVING PULL_REQUESTS...")
-        pullrequests = list(getPRs(user_owner, repo_name, tokens))
+        pullrequests = list(getPRs(owner, repository, tokens))
         print("PULL_REQUESTS RETRIEVED")
 
         repository = {
@@ -140,3 +146,11 @@ if __name__ == '__main__':
         tables = getColumnsTable(cursor)
         jsonToSql(conn, tables, repository)
     conn.close()
+
+
+# if __name__ == '__main__':
+#     user_owner = "ES2-UFPI"
+#     repo_name = "Unichat"
+#     # user_owner = "Mex978"
+#     # repo_name = "compilador"
+#     run(user_owner, repo_name, tokens=[])
