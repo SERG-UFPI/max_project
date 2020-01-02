@@ -1,3 +1,4 @@
-psycopg2
-perceval
+psycopg2==2.8.4
+perceval==0.12.26
 Flask==1.1.1
+gunicorn
