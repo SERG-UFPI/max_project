@@ -107,8 +107,9 @@ def createDataBase(new_db, username, password):
 
 def run(owner, repository, tokens=[]):
     # SENHA DO POSTGRES INSTALADO NO PC É NECESSÁRIA
-    conn = psycopg2.connect(
-        host="localhost", database="serg", user="postgres", password="")
+    # conn = psycopg2.connect(
+    #     host="localhost", database="serg", user="postgres", password="")
+    conn = psycopg2.connect("postgres://dtatvlptygmaqh:32456b95e7c0d3fef17bf1e41cf373f1c7851807e328141abcc1d2a8402b28f5@ec2-54-163-234-44.compute-1.amazonaws.com:5432/dcsqihk0nk89m9", sslmode='require')
 
     cursor = conn.cursor()
 
