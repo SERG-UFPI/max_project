@@ -32,7 +32,7 @@ def insert_repository():
 
             owner = request.json["owner"]
             repository = request.json["repository"]
-            tokens = request.json["tokens"]
+            tokens = request.headers["tokens"]
             run(owner, repository, tokens)
             return jsonify({
                 "success": True
