@@ -105,12 +105,23 @@ def createDataBase(new_db, username, password):
     cur.execute(f"CREATE DATABASE {new_db}")
 
 
-def run(owner, repository, tokens=[]):
-    # SENHA DO POSTGRES INSTALADO NO PC É NECESSÁRIA
-    conn = psycopg2.connect(
-        host="localhost", database="serg", user="postgres", password="")
+def run(owner, repository):
+    conn = psycopg2.connect(os.environ.get("DATABASE_URL"), sslmode='require')
 
     cursor = conn.cursor()
+
+    tokens = []
+
+    index = 1
+
+    while 1:
+        token = os.environ.get(f"TOKEN_{index}")
+        if token != None:
+            print(token)
+            tokens.append(token)
+            index += 1
+        else:
+            break
 
     repositorys = checkRepoExists(owner, repository, cursor)
 

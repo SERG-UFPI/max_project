@@ -24,15 +24,15 @@ def insert_repository():
                 return jsonify({
                     "error": "É necessário que seja informado no body o nome do repositório a ser inserido!"
                 })
-            if not "tokens" in request.json:
-                return jsonify({
-                    "error": "É necessário que seja informada no body uma lista de tokens para correta execução da ferramenta!"
-                })
+            # if not "tokens" in request.json:
+            #     return jsonify({
+            #         "error": "É necessário que seja informada no body uma lista de tokens para correta execução da ferramenta!"
+            #     })
 
             owner = request.json["owner"]
             repository = request.json["repository"]
-            tokens = request.json["tokens"]
-            run(owner, repository, tokens)
+            # tokens = request.json["tokens"]
+            run(owner, repository)
             return jsonify({
                 "success": True
             })
