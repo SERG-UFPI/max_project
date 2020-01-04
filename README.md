@@ -21,7 +21,6 @@ Para utilização da API é necessário que nos headers sejam passadas as seguin
   * Informações no body (json):
     * owner: Nome do dono do repositório
     * repository: Nome do repositório
-    * tokens: Uma lista de tokens para que a ferramenta não tenha obstáculos com relação a limite de requisições ao github
     
 
 
