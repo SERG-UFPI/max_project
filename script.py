@@ -107,7 +107,6 @@ def createDataBase(new_db, username, password):
 
 def run(owner, repository):
     data_base_url = os.environ.get("DATABASE_URL")
-    print(data_base_url)
     conn = psycopg2.connect(data_base_url, sslmode='require')
 
     cursor = conn.cursor()
@@ -119,12 +118,11 @@ def run(owner, repository):
     while 1:
         token = os.environ.get(f"TOKEN_{index}")
         if token != None:
-            print(token)
             tokens.append(token)
             index += 1
         else:
             break
-    exit()
+
     repositorys = checkRepoExists(owner, repository, cursor)
 
     if repositorys is None:
